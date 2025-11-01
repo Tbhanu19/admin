@@ -42,7 +42,6 @@ class AdminResponse(BaseModel):
         orm_mode = True
 
 
-
 class LoginRequest(BaseModel):
     username: str
     password: str

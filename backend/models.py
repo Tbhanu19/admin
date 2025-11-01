@@ -23,3 +23,4 @@ class User(Base):
     password_hash = Column(String, nullable=False)
     timestamp = Column(DateTime, default=None) 
     login_count = Column(Integer, default=0)
+
