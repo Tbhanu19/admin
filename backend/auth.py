@@ -1,44 +1,44 @@
+import hashlib
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
-from passlib.context import CryptContext
-import hashlib
 from fastapi import HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 
-SECRET_KEY = "SUPER_SECRET_KEY_CHANGE_ME"
+SECRET_KEY = "SUPER_SECRET_KEY_CHANGE_ME" 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+def _sha256(text: str) -> str:
+    """Return hex SHA-256 for the given text."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
-
-oauth2_scheme = HTTPBearer()
-
-
-def _prehash(password: str) -> str:
-    """Pre-hash with SHA-256 to support long passwords before Argon2 hashing."""
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 def get_password_hash(password: str) -> str:
-    """Return Argon2 hash of the pre-hashed password."""
-    return pwd_context.hash(_prehash(password))
+    """
+    Hash a plain password using SHA-256.
+    Note: This is lightweight. For production use bcrypt/argon2 with salt.
+    """
+    return _sha256(password)
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain password against the stored hash."""
-    return pwd_context.verify(_prehash(plain_password), hashed_password)
+    """Verify a plain password against a SHA-256 hex digest."""
+    try:
+        return _sha256(plain_password) == hashed_password
+    except Exception:
+        return False
+
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    """Create a JWT token with expiration."""
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+
 def decode_token(token: str) -> dict:
-    """Decode a JWT token and return its payload."""
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:

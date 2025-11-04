@@ -2,7 +2,6 @@ from database import SessionLocal, engine
 from models import Admin, Base
 from auth import get_password_hash
 
-
 Base.metadata.create_all(bind=engine)
 
 def create_admin():
@@ -14,17 +13,19 @@ def create_admin():
         db.close()
         return
 
+    hashed_password = get_password_hash("Admin@123")  
     admin = Admin(
         first_name="Super",
         last_name="Admin",
         email="admin@gmail.com",
-        password_hash=get_password_hash("Admin@123")
+        password_hash=hashed_password
     )
 
     db.add(admin)
     db.commit()
     db.close()
-    print("Admin created successfully!")
+    print("Admin created successfully")
+
 
 if __name__ == "__main__":
     create_admin()
